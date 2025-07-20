@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="datainsight-lite",
-    version="0.1.1",
+    version="0.1.2",
     description="One-line EDA report generator for pandas DataFrames.",
     author="Swakshwar Ghosh",
     author_email="ghoshswakshwar@gmail.com",

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "datainsight-lite"
-version = "0.1.0"
+version = "0.1.2"
 description = "A one-line EDA report generator for pandas DataFrames."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -32,7 +32,7 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/swaksh-war/datainsight-lite"
 "Repository" = "https://github.com/swaksh-war/datainsight-lite"
-"Issues" = "https://github.com/yourusername/datainsight-lite/issues"
+"Issues" = "https://github.com/swaksh-war/datainsight-lite/issues"
 
 [tool.setuptools.packages.find]
 where = ["datainsight"]
