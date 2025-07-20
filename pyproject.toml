@@ -35,9 +35,8 @@ dependencies = [
 "Issues" = "https://github.com/swaksh-war/datainsight-lite/issues"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["datainsight_lite"]
 include = ["datainsight*", "utils*"]
-exclude = ["examples*", "tests*"]
 
 [tool.setuptools.package-data]
-"datainsight" = ["templates/*.html"]
+"datainsight_lite.datainsight" = ["templates/*.html"]
