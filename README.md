@@ -14,7 +14,6 @@ Added Support For CSV, EXCEL, JSON file
 - 🔥 Correlation heatmap
 - 🕵️‍♀️ Missing value visualizations
 - 🎯 Outlier detection
-- 💻 CLI support: `datainsight-lite dataset.csv --output report.html`
 - 📝 Generates clean, professional HTML or PDF reports
 
 ---
