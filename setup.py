@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="datainsight-lite",
-    version="0.1.2rc1",
+    version="0.1.4a1",
     description="One-line EDA report generator for pandas DataFrames.",
     author="Swakshwar Ghosh",
     author_email="ghoshswakshwar@gmail.com",
-    packages=find_packages(),
+    packages=find_packages(where=".", include=["datainsight*", "utils*"]),
     include_package_data=True,
     package_data={"datainsight": ["templates/*.html"]},
     install_requires=[
