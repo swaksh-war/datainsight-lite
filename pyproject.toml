@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "datainsight-lite"
-version = "0.1.2"
+version = "0.1.2rc1"
 description = "A one-line EDA report generator for pandas DataFrames."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -36,6 +36,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["datainsight"]
+exclude = ["examples*", "tests*"]
 
 [tool.setuptools.package-data]
 "datainsight" = ["templates/*.html"]
