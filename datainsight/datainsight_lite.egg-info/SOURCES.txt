@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+datainsight/datainsight_lite.egg-info/PKG-INFO
+datainsight/datainsight_lite.egg-info/SOURCES.txt
+datainsight/datainsight_lite.egg-info/dependency_links.txt
+datainsight/datainsight_lite.egg-info/requires.txt
+datainsight/datainsight_lite.egg-info/top_level.txt
+tests/test_core.py
+tests/test_visualiztions.py

@@ -1,0 +1,50 @@
+Metadata-Version: 2.4
+Name: datainsight-lite
+Version: 0.1.0
+Summary: A one-line EDA report generator for pandas DataFrames.
+Author: Swakshwar Ghosh
+Author-email: Swakshwar Ghosh <ghoshswakshwar@gmail.com>
+License: MIT
+Keywords: eda,data-analysis,pandas,report,visualization
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pandas>=1.3
+Requires-Dist: matplotlib>=3.4
+Requires-Dist: seaborn>=0.11
+Requires-Dist: jinja2>=3.0
+Dynamic: author
+Dynamic: license-file
+Dynamic: requires-python
+
+# DataInsight Lite 📊
+
+**One-line Exploratory Data Analysis (EDA) for your pandas DataFrames.**  
+Generate beautiful HTML or PDF reports with descriptive stats, heatmaps, outlier detection, and missing value insights.
+
+---
+
+## 🚀 Features
+
+- ✅ **One-liner API**: `quick_report(df, output="report.html")`
+- 📊 Dataset summary, descriptive stats
+- 🔥 Correlation heatmap
+- 🕵️‍♀️ Missing value visualizations
+- 🎯 Outlier detection
+- 💻 CLI support: `datainsight-lite dataset.csv --output report.html`
+- 📝 Generates clean, professional HTML or PDF reports
+
+---
+
+## 📦 Installation
+
+```bash
+pip install datainsight-lite

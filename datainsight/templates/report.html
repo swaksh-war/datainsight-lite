@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DataInsight Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2 { color: #2C3E50; }
+        img { max-width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>DataInsight Lite Report</h1>
+    <h2>Dataset Summary</h2>
+    <pre>{{ summary }}</pre>
+
+    <h2>Descriptive Statistics</h2>
+    <pre>{{ description }}</pre>
+
+    <h2>Outlier Detection</h2>
+    <pre>{{ outliers }}</pre>
+
+    <h2>Correlation Heatmap</h2>
+    <img src="{{ heatmap_img }}" alt="Correlation Heatmap">
+
+    <h2>Missing Values</h2>
+    <img src="{{ missing_img }}" alt="Missing Values">
+</body>
+</html>
