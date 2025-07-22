@@ -1,0 +1,75 @@
+{
+    "classes_": {
+        "Gender": [
+            "Male",
+            "Other",
+            "Female"
+        ],
+        "Region": [
+            "North",
+            "West",
+            "South",
+            "East"
+        ],
+        "Membership": [
+            "Platinum",
+            "Bronze",
+            "Gold",
+            "Silver"
+        ],
+        "IsActive": [
+            true,
+            false
+        ]
+    },
+    "_label2id": {
+        "Gender": {
+            "Male": 0,
+            "Other": 1,
+            "Female": 2
+        },
+        "Region": {
+            "North": 0,
+            "West": 1,
+            "South": 2,
+            "East": 3
+        },
+        "Membership": {
+            "Platinum": 0,
+            "Bronze": 1,
+            "Gold": 2,
+            "Silver": 3
+        },
+        "IsActive": {
+            "true": 0,
+            "false": 1
+        }
+    },
+    "_id2label": {
+        "Gender": {
+            "0": "Male",
+            "1": "Other",
+            "2": "Female"
+        },
+        "Region": {
+            "0": "North",
+            "1": "West",
+            "2": "South",
+            "3": "East"
+        },
+        "Membership": {
+            "0": "Platinum",
+            "1": "Bronze",
+            "2": "Gold",
+            "3": "Silver"
+        },
+        "IsActive": {
+            "0": true,
+            "1": false
+        }
+    },
+    "_handle_missing": "error",
+    "_missing_value": -1,
+    "_handle_unknown": "error",
+    "_unknown_value": -1
+}

@@ -2,12 +2,13 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
+from .base_encoder import BaseEncoder
 from datatypes import Series, List, Dataframe
 import pandas as pd
 import numpy as np
 import json
 
-class LabelEncoder:
+class LabelEncoder(BaseEncoder):
     def __init__(self, handle_missing="error", missing_value=-1, handle_unknown="error", unknown_value=-1):
         self.classes_ :None|list|dict = None
         self._label2id = None
@@ -205,7 +206,7 @@ class LabelEncoder:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=4)
     
-    
+
     @classmethod
     def load(cls, path: str):
         if not os.path.exists(path):

@@ -8,8 +8,9 @@ from datainsight_lite.utils.datatypes import Series, Dataframe, List
 le = LabelEncoder()
 
 df = pd.read_csv("test_with_categorical.csv")
-print(df['Region'])
-data = df['Region']
+cols = ["Gender","Region","Membership","IsActive"]
+print(df[cols])
+data = df[cols]
 print(type(data))
 print(isinstance(data, Series))
 print(isinstance(data, Dataframe))
@@ -19,4 +20,9 @@ data = le.fit_transform(data)
 
 print(data)
 
-print(le.inverse_transform([0,1,2,1,2]))
+# print(le.inverse_transform([0,1,2,1,2]))
+
+le.save("test.json")
+
+new_le = LabelEncoder.load("test.json")
+print(new_le.__dict__)
