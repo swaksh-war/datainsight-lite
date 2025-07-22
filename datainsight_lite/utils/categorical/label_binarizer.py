@@ -128,7 +128,7 @@ class LabelBinarizer(BaseEncoder):
     
     
     def to_dict(self):
-        return super().to_dict()
+        return self.__dict__
     
     @classmethod
     def from_dict(cls, state_dict):
