@@ -88,11 +88,44 @@ class LabelBinarizer(BaseEncoder):
         return self.transform(data, if_series)
 
 
-    def inverse_transform(self, data):
-        return super().inverse_transform(data)
+    def _inverse_transform(self, data: np.ndarray):
+        if self._id2label is None:
+            raise RuntimeError("Make sure the Label Binarizer is fitted.")
+
+        if self.n == 2:
+            def map_id_bin(id_):
+                if id_ in self._id2label:
+                    return self._id2label[id_]
+                elif pd.isna(id_):
+                    return np.nan
+                else:
+                    raise ValueError(f"Unseen encoded value {id_}.")
+            
+            return pd.Series([map_id_bin(x) for x in data])
+
+        else:
+            def map_id_multiclass(row):
+                if not any(row):
+                    return np.nan
+                idx = np.argmax(row)
+                if idx in self._id2label:
+                    return self._id2label[idx]
+                else:
+                    raise ValueError(f"Unseen encoded row {row}.")
+            
+            return pd.Series([map_id_multiclass(row) for row in data])
+
+
+    def inverse_transform(self, data: List| np.ndarray):
+        if not isinstance(data, (List|np.ndarray)):
+            raise TypeError("Only Series and List are supported for Label Binarization")
+        
+        if isinstance(data, List):
+            data = np.array(data)
+            return self._inverse_transform(data).to_list()
+        
+        return self._inverse_transform(data).to_numpy()
     
-    def _inverse_transform(self, data):
-        return super()._inverse_transform(data)
     
     def to_dict(self):
         return super().to_dict()
