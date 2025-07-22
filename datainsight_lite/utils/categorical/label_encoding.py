@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 from datatypes import Series, List, Dataframe
 import pandas as pd
 import numpy as np
+import json
 
 class LabelEncoder:
     def __init__(self, handle_missing="error", missing_value=-1, handle_unknown="error", unknown_value=-1):
@@ -188,3 +189,35 @@ class LabelEncoder:
             return data.fillna(value)
         
         return data
+
+
+    def to_dict(self, exclude=None):
+        exclude = exclude or []
+
+        return {
+            k: v for k, v in self.__dict__.items()
+            if not k.startswith("__") and k not in exclude
+        }
+    
+
+    def save(self, path: str, exclude=None):
+        state = self.to_dict(exclude)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=4)
+    
+    
+    @classmethod
+    def load(cls, path: str):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"file {path} does not exist")
+        
+        with open(path, "r", encoding="utf-8") as f:
+            state = json.load(f)
+        
+        instance = cls.__new__(cls)
+        instance.__dict__.update(state)
+
+        if hasattr(instance, "_post_load"):
+            instance._post_load()
+        
+        return instance
