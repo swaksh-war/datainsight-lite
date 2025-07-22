@@ -9,7 +9,8 @@ lb = LabelBinarizer()
 
 df = pd.read_csv("test_with_categorical.csv")
 
-data = df['Gender']
-
-lb = lb.fit(data)
-print(lb.__dict__)
+# data = ["male", "female", "male", "female"]
+data = df["Gender"]
+print(lb.fit_transform(data))
+print(type(lb.fit_transform(data)))
+print(type(lb.fit_transform(data, True)))

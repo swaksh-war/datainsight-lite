@@ -74,7 +74,7 @@ class LabelEncoder(BaseEncoder):
                 return np.nan
             else:
                 if if_unknown == "error":
-                    raise ValueError(f"Unseen Label '{label}' in column '{col_name}'")
+                    raise ValueError(f"Unseen Label '{label}' in column")
                 elif if_unknown == "replace":
                     return unknown_value
                 elif if_unknown == "skip":
