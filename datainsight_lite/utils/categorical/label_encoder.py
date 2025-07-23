@@ -25,7 +25,6 @@ class LabelEncoder(BaseEncoder):
             self.classes_ = unique_elems
             self._label2id = {label: idx for idx, label in enumerate(unique_elems)}
             self._id2label = {idx: label for label, idx in self._label2id.items()}
-            print("Fitted mappings:", self._label2id)
             return self
 
         if isinstance(data, Dataframe):
@@ -143,10 +142,11 @@ class LabelEncoder(BaseEncoder):
 
         if isinstance(data, List):
             data = pd.Series(np.array(data))
-            data = self.__inverse_transform(data, None)
+            data = self._inverse_transform(data, None)
             return data.to_list()
+        
         if isinstance(data, Series):
-            data = self.__inverse_transform(data, None)
+            data = self._inverse_transform(data, None)
             if return_type == "as" or return_type == "series":
                 return data
             elif return_type == "list":
@@ -155,7 +155,7 @@ class LabelEncoder(BaseEncoder):
         if isinstance(data, Dataframe):
             for col in data.columns:
                 col_data = data[col]
-                transformed_data = self.__inverse_transform(col_data, col)
+                transformed_data = self._inverse_transform(col_data, col)
                 data[col] = transformed_data
             return data
 
