@@ -85,7 +85,7 @@ class LabelEncoder(BaseEncoder):
         return data.map(map_label)
 
 
-    def __transform(self, data, if_unknown, unknown_value) -> Series | Dataframe:
+    def _transform(self, data, if_unknown, unknown_value) -> Series | Dataframe:
         if self._id2label is None or self._label2id is None:
             raise RuntimeError("Looks Like Encoder isn't fitted run fit_transform or fit function first before transforming.")
 
@@ -105,7 +105,7 @@ class LabelEncoder(BaseEncoder):
 
     def transform(self, data) -> Series|Dataframe:
         if isinstance(data, (Series, Dataframe, List)):
-            return self.__transform(data, self._handle_unknown, self._unknown_value)
+            return self._transform(data, self._handle_unknown, self._unknown_value)
         else:
             raise TypeError("Only Pandas Series, Dataframe and normal List is supported")
         
@@ -115,7 +115,7 @@ class LabelEncoder(BaseEncoder):
         return self.transform(data)
 
 
-    def __inverse_transform(self, data: List|Series|Dataframe, col_name: str| None) -> Series:
+    def _inverse_transform(self, data: List|Series|Dataframe, col_name: str| None) -> Series:
         if self._id2label is None:
             raise RuntimeError("Encoder isnt fitted. run fit() first or fit_transform() to fit and transform simultaniously")
         
@@ -200,6 +200,8 @@ class LabelEncoder(BaseEncoder):
             if not k.startswith("__") and k not in exclude
         }
     
+    def from_dict(self):
+        return super().from_dict()
 
     def save(self, path: str, exclude=None):
         state = self.to_dict(exclude)

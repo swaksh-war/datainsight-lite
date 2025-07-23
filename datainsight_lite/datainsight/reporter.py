@@ -1,12 +1,19 @@
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
+
 import pandas as pd
 from utils import datatypes
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from utils.categorical.label_encoder import LabelEncoder
+
+
 class Reporter:
-    def __init__(self, file_path: datatypes.Str, sheet_name : datatypes.Str | None = None):
+    def __init__(self, file_path: datatypes.Str, sheet_name : datatypes.Str | None = None, **kwargs):
         self.data = self.__validate_file(file_path, sheet_name=sheet_name)
-    
+        self._numerical_columns, self._categorical_columns = self.__get_num_cat_cols(**kwargs)    
 
     def __dataset_summary(self, data: datatypes.Dataframe) -> datatypes.Dict:
         return {
@@ -24,7 +31,8 @@ class Reporter:
     def __detect_outliers(self, data: datatypes.Dataframe) -> datatypes.Dict:
         outliers_info = {}
 
-        for col in data.select_dtypes(include="number").columns:
+        for col in self._numerical_columns:
+            print(col)
             Q1 = data[col].quantile(0.25)
             Q3 = data[col].quantile(0.75)
             IQR = Q3 - Q1
@@ -37,9 +45,10 @@ class Reporter:
         return outliers_info
 
 
-    def __plot_corr_heatmap(self, data: datatypes.Dataframe) -> datatypes.Str:
+    def __plot_corr_heatmap(self) -> datatypes.Str:
         plt.figure(figsize=(10, 8))
-        sns.heatmap(data.corr(), annot=True, cmap="coolwarm", fmt='.2f')
+        encoded_df = self.__handle_categorical_columns()
+        sns.heatmap(encoded_df.corr(), annot=True, cmap="coolwarm", fmt='.2f')
         plt.title('Correlation Heatmap')
         plt.savefig("heatmap.png")
         plt.close()
@@ -85,7 +94,7 @@ class Reporter:
         summary_dict = self.__dataset_summary(self.data)
         description = self.__describe_numerical(self.data)
         outliers_info = self.__detect_outliers(self.data)
-        heatmap_path = self.__plot_corr_heatmap(self.data)
+        heatmap_path = self.__plot_corr_heatmap()
         missing_value_path = self.__plot_missing_values(self.data)
         
         return {
@@ -96,5 +105,29 @@ class Reporter:
             "missing_path": missing_value_path
         }
     
+    def __handle_categorical_columns(self, inplace=False) -> None|datatypes.Dataframe:
+        encoder=LabelEncoder()
+        if inplace:
+            for col in self._categorical_columns:
+                self.data[col]=encoder.fit_transform(self.data[col])
+        else:
+            new_df = self.data.copy()
+            for col in new_df.columns:
+                if col in self._categorical_columns:
+                    new_df[col]=encoder.fit_transform(new_df[col])
+            return new_df      
 
+    def __get_num_cat_cols(self, **kwargs):
+        """
+        kwargs: specials_cols_to_treat_as_numerical, special_cols_to_treat_as_categorical
+        """
+        cat_cols = kwargs.get("cols_to_treat_as_cat", [])
+        num_cols = kwargs.get("cols_to_treat_as_num", [])
+            
+        for col in self.data.columns:
+            if self.data[col].dtype == object and (col not in num_cols):
+                cat_cols.append(col)
+            if self.data[col].dtype != object and (col not in cat_cols):
+                num_cols.append(col)
+        return num_cols, cat_cols
     
