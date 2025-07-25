@@ -17,7 +17,20 @@ data = df['Gender']
 data = cfe.fit_transform(data)
 
 print(data)
+print("\n")
+
+print("Details of CountFrequencyEncoder: ")
 print(cfe.__dict__)
 
+cfe.save("count_freq_config.json")
+
+print("\n")
 
 print(cfe.inverse_transform([0.4, 0.37]))
+
+cfe2 = cfe.load("count_freq_config.json")
+
+print("\n")
+
+print("Details of CountFrequencyEncoder: ")
+print(cfe2.__dict__)

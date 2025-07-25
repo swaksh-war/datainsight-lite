@@ -1,0 +1,22 @@
+{
+    "classes_": [
+        "Male",
+        "Other",
+        "Female"
+    ],
+    "_label2id": {
+        "Male": 0.37,
+        "Other": 0.4,
+        "Female": 0.23
+    },
+    "_id2label": {
+        "0.37": "Male",
+        "0.4": "Other",
+        "0.23": "Female"
+    },
+    "_handle_missing": "error",
+    "_missing_value": -1,
+    "_handle_unknown": "error",
+    "_unknown_value": -1,
+    "mode": "frequency"
+}
