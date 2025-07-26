@@ -1,5 +1,5 @@
-from .reporter import Reporter
-from .report_generator import generate_html_report
+from .reporting.reporter import Reporter
+from .reporting.report_generator import generate_html_report
 from utils import datatypes
 
 

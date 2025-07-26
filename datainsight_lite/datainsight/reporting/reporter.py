@@ -110,6 +110,7 @@ class Reporter:
         if inplace:
             for col in self._categorical_columns:
                 self.data[col]=encoder.fit_transform(self.data[col])
+            return self.data
         else:
             new_df = self.data.copy()
             for col in new_df.columns:
@@ -130,4 +131,5 @@ class Reporter:
             if self.data[col].dtype != object and (col not in cat_cols):
                 num_cols.append(col)
         return num_cols, cat_cols
+    
     
