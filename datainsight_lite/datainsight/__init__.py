@@ -1,6 +1,6 @@
 from .reporting.reporter import Reporter
 from .reporting.report_generator import generate_html_report
-from utils import datatypes
+from ..utils import datatypes
 
 
 def quick_report(

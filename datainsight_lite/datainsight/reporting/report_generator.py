@@ -1,11 +1,11 @@
 from jinja2 import Environment, FileSystemLoader
 import pkg_resources
-
-
+import os
 
 def generate_html_report(report, output_file):
 
-    template_path = pkg_resources.resource_filename('datainsight', 'templates')
+    current_dir=os.path.dirname(__file__)
+    template_path=os.path.join(current_dir,'..','templates')
     env = Environment(loader=FileSystemLoader(template_path))
     template = env.get_template('report.html')
     html_content = template.render(

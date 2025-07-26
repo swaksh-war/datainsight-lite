@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DataInsight Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2 { color: #2C3E50; }
+        img { max-width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>DataInsight Lite Report</h1>
+    <h2>Dataset Summary</h2>
+    <pre>{'shape': (100, 8), 'columns': Index(['CustomerID', 'Age', 'Gender', 'AnnualIncome', 'SpendingScore',
+       'Region', 'Membership', 'IsActive'],
+      dtype='object'), 'dtypes': {'CustomerID': 'int64', 'Age': 'int64', 'Gender': 'object', 'AnnualIncome': 'int64', 'SpendingScore': 'int64', 'Region': 'object', 'Membership': 'object', 'IsActive': 'bool'}, 'missing_values': {'CustomerID': 0, 'Age': 0, 'Gender': 0, 'AnnualIncome': 0, 'SpendingScore': 0, 'Region': 0, 'Membership': 0, 'IsActive': 0}}</pre>
+
+    <h2>Descriptive Statistics</h2>
+    <pre>               count      mean           std      min       25%      50%       75%       max
+CustomerID     100.0     50.50     29.011492      1.0     25.75     50.5     75.25     100.0
+Age            100.0     43.35     14.904663     19.0     31.75     42.0     57.00      69.0
+AnnualIncome   100.0  74664.80  26574.101919  30854.0  52482.75  76780.0  96321.75  119474.0
+SpendingScore  100.0     49.90     28.268375      2.0     27.00     46.5     67.25      99.0</pre>
+
+    <h2>Outlier Detection</h2>
+    <pre>{'CustomerID': 0, 'Age': 0, 'AnnualIncome': 0, 'SpendingScore': 0}</pre>
+
+    <h2>Correlation Heatmap</h2>
+    <img src="heatmap.png" alt="Correlation Heatmap">
+
+    <h2>Missing Values</h2>
+    <img src="" alt="Missing Values">
+</body>
+</html>
