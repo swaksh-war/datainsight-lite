@@ -1,13 +1,13 @@
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
 
 import pandas as pd
-from ...utils import datatypes
+from utils import datatypes
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from ...utils.categorical.label_encoder import LabelEncoder
+from utils.categorical.label_encoder import LabelEncoder
 
 class Reporter:
     def __init__(self, file_path: datatypes.Str, sheet_name : datatypes.Str | None = None, **kwargs):

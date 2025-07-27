@@ -1,4 +1,8 @@
-from datainsight_lite.datainsight.reporting.reporter import Reporter
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
+
+from reporting.reporter import Reporter
 
 class FeatureAnalysis:
     def __init__(self):

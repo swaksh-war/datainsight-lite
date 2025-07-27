@@ -1,6 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 from .reporting.reporter import Reporter
 from .reporting.report_generator import generate_html_report
-from ..utils import datatypes
+from utils import datatypes
 
 
 def quick_report(
