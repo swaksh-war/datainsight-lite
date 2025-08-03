@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 import pandas as pd
-from datainsight_lite.utils.categorical.label_encoder import LabelEncoder
+from datainsight_lite.utils.preprocessing.categorical.label_encoder import LabelEncoder
 from datainsight_lite.utils.datatypes import Series, Dataframe, List
 
 le = LabelEncoder()

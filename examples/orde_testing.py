@@ -4,7 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
 import pandas as pd
 
-from datainsight_lite.utils.categorical.ordinal_encoder import OrdinalEncoder
+from datainsight_lite.utils.preprocessing.categorical.ordinal_encoder import OrdinalEncoder
 
 ord_encoder = OrdinalEncoder(order = "auto")
 

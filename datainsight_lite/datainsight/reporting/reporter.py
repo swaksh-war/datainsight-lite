@@ -7,7 +7,7 @@ from utils import datatypes
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils.categorical.label_encoder import LabelEncoder
+from utils.preprocessing.label_encoder import LabelEncoder
 
 class Reporter:
     def __init__(self, file_path: datatypes.Str, sheet_name : datatypes.Str | None = None, **kwargs):

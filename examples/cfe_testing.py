@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
-from datainsight_lite.utils.categorical.count_frequency_encoder import CountFrequencyEncoder
+from datainsight_lite.utils.preprocessing.categorical.count_frequency_encoder import CountFrequencyEncoder
 import pandas as pd
 
 
