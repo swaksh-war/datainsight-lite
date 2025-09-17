@@ -15,3 +15,6 @@ class MultiVariateAnalysis(FeatureAnalysis):
         plt.title("Correlation Matrix")
         plt.tight_layout()
         plt.show()
+
+    def _analyze(self, *args, **kwargs):
+        pass

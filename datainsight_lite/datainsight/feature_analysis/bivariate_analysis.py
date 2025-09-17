@@ -54,3 +54,7 @@ class BiVariateAnalysis(FeatureAnalysis):
         plt.ylabel(y)
         plt.tight_layout()
         plt.show()
+    
+
+    def _analyze(self, *args, **kwargs):
+        pass
