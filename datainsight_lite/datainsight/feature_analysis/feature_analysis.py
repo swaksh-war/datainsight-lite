@@ -1,5 +1,6 @@
 import sys
 import os
+from abc import ABC, abstractmethod
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
 from reporting.reporter import Reporter
@@ -16,3 +17,7 @@ class FeatureAnalysis:
             unique_column_data = self.data[col].unique().tolist()
             unique_dict[col] = unique_column_data
         return unique_dict
+    
+    @abstractmethod
+    def _analyze(self, *args, **kwargs):
+        pass

@@ -1,0 +1,4 @@
+from feature_analysis import FeatureAnalysis
+from univariate_analysis import UniVariateAnalysis
+from bivariate_analysis import BiVariateAnalysis
+from multivariate_analysis import MultiVariateAnalysis
