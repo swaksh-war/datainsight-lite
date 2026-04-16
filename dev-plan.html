@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataInsight — Development Plan v2</title>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161e;
+      --surface2: #1a1e2a;
+      --border: #252836;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --accent3: #f7c948;
+      --accent4: #ff6b6b;
+      --text: #e2e4ec;
+      --muted: #6b7280;
+      --done: #22c55e;
+      --partial: #f59e0b;
+      --radius: 10px;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; overflow-x: hidden; }
+
+    header { padding: 48px 64px 32px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg,#0d0f14 0%,#141826 100%); position: relative; overflow: hidden; }
+    header::before { content:''; position:absolute; top:-80px; right:-80px; width:340px; height:340px; background:radial-gradient(circle,rgba(108,99,255,.18) 0%,transparent 70%); pointer-events:none; }
+    header::after  { content:''; position:absolute; bottom:-60px; left:20%; width:280px; height:280px; background:radial-gradient(circle,rgba(0,212,170,.10) 0%,transparent 70%); pointer-events:none; }
+    .header-inner  { position:relative; max-width:1200px; margin:0 auto; }
+    .badge { display:inline-block; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); background:rgba(108,99,255,.12); border:1px solid rgba(108,99,255,.3); border-radius:20px; padding:4px 12px; margin-bottom:16px; }
+    h1 { font-size:clamp(28px,4vw,48px); font-weight:800; letter-spacing:-.02em; line-height:1.1; margin-bottom:12px; }
+    h1 span { color:var(--accent); }
+    .subtitle { font-size:15px; color:var(--muted); max-width:600px; line-height:1.6; margin-bottom:32px; }
+    .stats { display:flex; gap:12px; flex-wrap:wrap; }
+    .stat-chip { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 18px; display:flex; align-items:center; gap:8px; font-size:13px; }
+    .stat-chip .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .dot-done { background:var(--done); } .dot-partial { background:var(--partial); } .dot-todo { background:#64748b; }
+
+    .layout { display:grid; grid-template-columns:240px 1fr; max-width:1200px; margin:0 auto; }
+    .sidebar { padding:32px 0; border-right:1px solid var(--border); position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-title { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); padding:0 24px 10px; margin-top:14px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:8px 24px; font-size:12.5px; color:var(--muted); cursor:pointer; border-left:3px solid transparent; transition:all .15s; }
+    .nav-item:hover { color:var(--text); background:var(--surface); }
+    .nav-item.active { color:var(--text); border-left-color:var(--accent); background:rgba(108,99,255,.07); }
+    .nav-phase { font-size:10px; font-weight:700; background:var(--surface2); border-radius:5px; padding:2px 6px; min-width:22px; text-align:center; }
+    main { padding:40px 48px; }
+
+    .section { margin-bottom:56px; scroll-margin-top:24px; }
+    .section-header { display:flex; align-items:flex-start; gap:16px; margin-bottom:24px; }
+    .phase-num { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; flex-shrink:0; }
+    .section-title { font-size:20px; font-weight:700; letter-spacing:-.01em; margin-bottom:4px; }
+    .section-desc  { font-size:13px; color:var(--muted); }
+    .divider { border:none; border-top:1px solid var(--border); margin:40px 0; }
+    .sub-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+    .grid-3 { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; transition:border-color .15s; }
+    .card:hover { border-color:#3a3f55; }
+    .card h4 { font-size:13px; font-weight:600; margin-bottom:4px; }
+    .card p  { font-size:12px; color:var(--muted); line-height:1.55; }
+    .card .m-path { font-size:11px; font-family:'SF Mono','Fira Code',monospace; color:var(--accent2); margin-bottom:5px; }
+    .card .m-title { font-size:13px; font-weight:600; margin-bottom:4px; }
+    .card .m-desc  { font-size:12px; color:var(--muted); line-height:1.5; }
+    .state-card { display:flex; align-items:flex-start; gap:12px; }
+    .state-icon { font-size:18px; margin-top:1px; flex-shrink:0; }
+
+    .task-list { display:flex; flex-direction:column; gap:8px; }
+    .task-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:flex-start; gap:12px; transition:border-color .15s,transform .1s; }
+    .task-card:hover { border-color:#3a3f55; transform:translateX(2px); }
+    .task-check { width:18px; height:18px; border-radius:50%; border:2px solid; flex-shrink:0; margin-top:2px; }
+    .tc-high { border-color:var(--accent4); } .tc-med { border-color:var(--accent3); }
+    .task-body { flex:1; }
+    .task-title { font-size:13.5px; font-weight:600; margin-bottom:3px; }
+    .task-file  { font-size:11px; color:var(--accent2); font-family:'SF Mono','Fira Code',monospace; margin-bottom:5px; }
+    .tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:4px; }
+    .tag { font-size:10px; font-weight:600; letter-spacing:.04em; padding:2px 8px; border-radius:20px; border:1px solid; }
+    .tag-high { color:var(--accent4); border-color:rgba(255,107,107,.3); background:rgba(255,107,107,.07); }
+    .tag-med  { color:var(--accent3); border-color:rgba(247,201,72,.3);  background:rgba(247,201,72,.07); }
+    .tag-new  { color:var(--accent);  border-color:rgba(108,99,255,.3);  background:rgba(108,99,255,.07); }
+
+    .code-block { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; font-size:12px; font-family:'SF Mono','Fira Code',monospace; color:#a8b4d0; line-height:1.8; overflow-x:auto; }
+    .kw { color:#c678dd; } .fn { color:#61afef; } .str { color:#98c379; } .cls { color:#e5c07b; } .cm { color:#5c6370; font-style:italic; } .num { color:#d19a66; }
+
+    .tier-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .tier-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px; position:relative; overflow:hidden; }
+    .tier-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .tier-1::before { background:linear-gradient(90deg,var(--accent2),#00a886); }
+    .tier-2::before { background:linear-gradient(90deg,var(--accent),#9b5de5); }
+    .tier-3::before { background:linear-gradient(90deg,var(--accent4),#ff9f43); }
+    .tier-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+    .tier-card h3 { font-size:15px; font-weight:700; margin-bottom:6px; }
+    .tier-card > p { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:14px; }
+
+    .arch { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; overflow-x:auto; }
+    .arch-row { display:flex; gap:4px; justify-content:center; margin-bottom:4px; }
+    .arch-box { border:1px solid; border-radius:6px; padding:8px 12px; font-size:11px; font-weight:600; text-align:center; flex:1; max-width:185px; line-height:1.4; }
+    .arch-box.wide { max-width:100%; }
+    .ab-p { color:var(--accent);  border-color:rgba(108,99,255,.4); background:rgba(108,99,255,.1); }
+    .ab-t { color:var(--accent2); border-color:rgba(0,212,170,.4);  background:rgba(0,212,170,.1); }
+    .ab-y { color:var(--accent3); border-color:rgba(247,201,72,.4); background:rgba(247,201,72,.1); }
+    .ab-r { color:var(--accent4); border-color:rgba(255,107,107,.4); background:rgba(255,107,107,.1); }
+    .ab-g { color:var(--muted);   border-color:var(--border);        background:var(--surface2); }
+    .arch-arrow { text-align:center; color:#3a3f55; margin:3px 0; font-size:13px; }
+    .arch-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); text-align:center; margin-bottom:6px; }
+
+    .timeline { position:relative; padding-left:32px; }
+    .timeline::before { content:''; position:absolute; left:8px; top:8px; bottom:8px; width:2px; background:linear-gradient(180deg,var(--accent) 0%,var(--accent2) 50%,var(--accent3) 100%); opacity:.3; }
+    .tl-item { position:relative; margin-bottom:14px; }
+    .tl-item::before { content:''; position:absolute; left:-28px; top:13px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); box-shadow:0 0 0 2px var(--accent); }
+    .tl-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 18px; display:flex; align-items:center; gap:14px; }
+    .tl-order { font-size:20px; font-weight:800; color:var(--border); min-width:26px; }
+    .tl-body { flex:1; }
+    .tl-title { font-size:13.5px; font-weight:700; }
+    .tl-sub   { font-size:11.5px; color:var(--muted); margin-top:2px; }
+    .tl-scope { font-size:10px; font-weight:600; padding:3px 9px; border-radius:20px; border:1px solid; white-space:nowrap; }
+    .scope-s { color:var(--done);    border-color:rgba(34,197,94,.3);   background:rgba(34,197,94,.07); }
+    .scope-m { color:var(--partial); border-color:rgba(245,158,11,.3);  background:rgba(245,158,11,.07); }
+    .scope-l { color:var(--accent4); border-color:rgba(255,107,107,.3); background:rgba(255,107,107,.07); }
+
+    .change-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .change-table thead tr { background:var(--surface2); }
+    .change-table th { padding:10px 14px; text-align:left; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); }
+    .change-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5; }
+    .change-table tr:last-child td { border-bottom:none; }
+    .change-table code { font-family:'SF Mono','Fira Code',monospace; font-size:11px; color:var(--accent4); background:rgba(255,107,107,.07); padding:1px 5px; border-radius:3px; }
+    .sev-break  { color:var(--accent4); font-weight:700; }
+    .sev-rework { color:var(--partial); font-weight:700; }
+    .sev-extend { color:var(--accent);  font-weight:700; }
+    .sev-new    { color:var(--accent2); font-weight:700; }
+
+    .dep-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; }
+    .dep-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; }
+    .dep-name { font-size:12px; font-weight:700; font-family:'SF Mono','Fira Code',monospace; color:var(--accent2); margin-bottom:2px; }
+    .dep-desc { font-size:11.5px; color:var(--muted); margin-bottom:4px; }
+    .dep-when { font-size:10px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+
+    .decision-card { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent3); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; }
+    .decision-q { font-size:13px; font-weight:600; margin-bottom:3px; }
+    .decision-r { font-size:12px; color:var(--muted); line-height:1.6; }
+    .decision-r strong { color:var(--accent3); }
+
+    .ep-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .ep-table th { padding:9px 12px; text-align:left; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); background:var(--surface2); }
+    .ep-table td { padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .ep-table tr:last-child td { border-bottom:none; }
+    .method { font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; font-family:monospace; }
+    .m-post   { background:rgba(108,99,255,.15); color:var(--accent); }
+    .m-get    { background:rgba(0,212,170,.12);  color:var(--accent2); }
+    .m-delete { background:rgba(255,107,107,.12); color:var(--accent4); }
+    .ep-path  { font-family:'SF Mono','Fira Code',monospace; font-size:11.5px; }
+
+    .install-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:10px; margin-bottom:20px; }
+    .install-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+    .install-cmd  { font-size:11.5px; font-family:'SF Mono','Fira Code',monospace; color:var(--accent3); margin-bottom:5px; }
+    .install-desc { font-size:11.5px; color:var(--muted); line-height:1.5; }
+
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:#252836; border-radius:3px; }
+
+    @media (max-width:900px) {
+      .layout { grid-template-columns:1fr; }
+      .sidebar { display:none; }
+      header { padding:32px 24px; }
+      main { padding:24px; }
+      .tier-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">Development Plan v2 · Reporter Engine + SDK + WebApp · April 2026</div>
+    <h1>DataInsight <span>Framework</span></h1>
+    <p class="subtitle">A tiered data exploration &amp; ML framework — Novice to Pro access levels, deliverable as a Python SDK <em>and</em> a React + FastAPI web application, powered by a unified Reporter Engine.</p>
+    <div class="stats">
+      <div class="stat-chip"><span class="dot dot-done"></span><strong>13</strong>&nbsp;modules done</div>
+      <div class="stat-chip"><span class="dot dot-partial"></span><strong>6</strong>&nbsp;need rework</div>
+      <div class="stat-chip"><span class="dot dot-todo"></span><strong>3</strong>&nbsp;access tiers</div>
+      <div class="stat-chip" style="border-color:rgba(108,99,255,.3)">2 install modes</div>
+      <div class="stat-chip" style="border-color:rgba(0,212,170,.3)">SDK + WebApp</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-title">Overview</div>
+    <div class="nav-item active" onclick="go('current')"><span class="nav-phase" style="color:#22c55e">v</span> Current Audit</div>
+    <div class="nav-item" onclick="go('changes')"><span class="nav-phase" style="color:#f59e0b">!</span> Needed Changes</div>
+    <div class="nav-item" onclick="go('install')"><span class="nav-phase" style="color:#a78bfa">i</span> Install Modes</div>
+    <div class="sidebar-title">Reporter Engine</div>
+    <div class="nav-item" onclick="go('reporter-arch')"><span class="nav-phase" style="color:#00d4aa">R</span> Architecture</div>
+    <div class="nav-item" onclick="go('reporter-tiers')"><span class="nav-phase" style="color:#6c63ff">T</span> Access Tiers</div>
+    <div class="nav-item" onclick="go('reporter-api')"><span class="nav-phase" style="color:#f7c948">A</span> SDK API</div>
+    <div class="nav-item" onclick="go('reporter-web')"><span class="nav-phase" style="color:#ff6b6b">W</span> WebApp + API</div>
+    <div class="sidebar-title">Phases</div>
+    <div class="nav-item" onclick="go('phase0')"><span class="nav-phase">0</span> Fix &amp; Harden</div>
+    <div class="nav-item" onclick="go('phase1')"><span class="nav-phase">1</span> Reporter Engine</div>
+    <div class="nav-item" onclick="go('phase2')"><span class="nav-phase">2</span> SDK Layer</div>
+    <div class="nav-item" onclick="go('phase3')"><span class="nav-phase">3</span> WebApp + API</div>
+    <div class="nav-item" onclick="go('phase4')"><span class="nav-phase">4</span> Adapter + Pipeline</div>
+    <div class="nav-item" onclick="go('phase5')"><span class="nav-phase">5</span> Preprocessing</div>
+    <div class="nav-item" onclick="go('phase6')"><span class="nav-phase">6</span> AutoML</div>
+    <div class="nav-item" onclick="go('phase7')"><span class="nav-phase">7</span> Pro + Dashboard</div>
+    <div class="nav-item" onclick="go('phase8')"><span class="nav-phase">8</span> Deployment</div>
+    <div class="sidebar-title">Reference</div>
+    <div class="nav-item" onclick="go('order')"><span class="nav-phase" style="color:#f7c948">-></span> Build Order</div>
+    <div class="nav-item" onclick="go('deps')"><span class="nav-phase" style="color:#a78bfa">D</span> Dependencies</div>
+    <div class="nav-item" onclick="go('decisions')"><span class="nav-phase" style="color:#f59e0b">?</span> Open Decisions</div>
+  </nav>
+
+  <main>
+
+    <!-- CURRENT AUDIT -->
+    <section class="section" id="current">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(34,197,94,.12);color:var(--done)">OK</div>
+        <div><div class="section-title">Current Codebase Audit</div><div class="section-desc">What exists today and its real quality</div></div>
+      </div>
+      <div class="sub-label" style="color:var(--done)">Implemented and Working</div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card state-card"><span class="state-icon">&#128202;</span><div><h4>quick_report()</h4><p>One-liner: CSV/Excel/JSON to HTML report via Jinja2</p></div></div>
+        <div class="card state-card"><span class="state-icon">&#129518;</span><div><h4>Reporter (stats engine)</h4><p>Summary, outliers (IQR), correlation heatmap, missing values — saves PNGs to disk</p></div></div>
+        <div class="card state-card"><span class="state-icon">&#128200;</span><div><h4>3 Analysis Classes</h4><p>UniVariate · BiVariate · MultiVariate — all matplotlib/seaborn via plt.show()</p></div></div>
+        <div class="card state-card"><span class="state-icon">&#127991;</span><div><h4>4 Categorical Encoders</h4><p>LabelEncoder · OrdinalEncoder · CountFrequencyEncoder · LabelBinarizer — full fit/transform/save/load</p></div></div>
+        <div class="card state-card"><span class="state-icon">&#9997;</span><div><h4>BaseEncoder (ABC)</h4><p>JSON serialization pattern, inherited by all encoders</p></div></div>
+        <div class="card state-card"><span class="state-icon">&#128295;</span><div><h4>Utility layer</h4><p>Type aliases, dataset_summary, describe_numerical, detect_outliers</p></div></div>
+      </div>
+      <div class="sub-label" style="color:var(--partial)">Broken or Incomplete — fix before new work</div>
+      <div class="grid-2">
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128308;</span><div><h4>FeatureAnalysis base class</h4><p>Calls <code style="color:var(--accent4);font-size:11px">Reporter()</code> with no args and accesses private methods via name-mangling — broken on import</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128308;</span><div><h4>feature_analysis/__init__.py</h4><p>Bare imports fail on any proper install</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128308;</span><div><h4>All plt.show() calls</h4><p>Every plot blocks execution — unusable from an API or headless environment</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128308;</span><div><h4>Reporter disk side-effects</h4><p>Saves heatmap.png / missing.png to CWD — breaks multi-user API contexts</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128993;</span><div><h4>sys.path hacks everywhere</h4><p>Every file appends to sys.path — fragile once installed as a package</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128993;</span><div><h4>OneHotEncoder skeleton</h4><p>__transform() and all public methods not implemented</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128993;</span><div><h4>BaseScaler — abstract only</h4><p>No StandardScaler, MinMaxScaler, or any concrete scaler exists</p></div></div>
+        <div class="card state-card" style="border-color:rgba(245,158,11,.25)"><span class="state-icon">&#128993;</span><div><h4>Test suite</h4><p>Both test files completely empty</p></div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- NEEDED CHANGES -->
+    <section class="section" id="changes">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(245,158,11,.12);color:var(--partial)">!</div>
+        <div><div class="section-title">Changes Needed to Current Code</div><div class="section-desc">File-by-file breakdown before new features are added</div></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="change-table">
+          <thead><tr><th>File</th><th>Severity</th><th>Problem</th><th>What to do</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>reporting/reporter.py</code></td>
+              <td><span class="sev-rework">Rework</span></td>
+              <td>Saves PNGs to CWD. No mode support.</td>
+              <td>Return base64 or Plotly JSON instead of saving files. Add mode param. This becomes the core of the new engine.</td>
+            </tr>
+            <tr>
+              <td><code>feature_analysis/feature_analysis.py</code></td>
+              <td><span class="sev-break">Breaks</span></td>
+              <td>Calls <code>Reporter()</code> with no args. Accesses <code>rep.__handle_categorical_columns()</code> — name-mangled, inaccessible.</td>
+              <td>Rewrite: accept a DataFrame in constructor. Remove Reporter dependency from this base class.</td>
+            </tr>
+            <tr>
+              <td><code>feature_analysis/__init__.py</code></td>
+              <td><span class="sev-break">Breaks</span></td>
+              <td>Bare imports fail outside source directory.</td>
+              <td>Convert to relative imports: <code>from .feature_analysis import FeatureAnalysis</code></td>
+            </tr>
+            <tr>
+              <td><code>univariate_analysis.py</code><br><code>bivariate_analysis.py</code><br><code>multivariate_analysis.py</code></td>
+              <td><span class="sev-rework">Rework</span></td>
+              <td>All plots call <code>plt.show()</code> — blocks execution, useless in API context.</td>
+              <td>Return <code>matplotlib.figure.Figure</code> objects. Add <code>to_base64(fig)</code> helper. Add Plotly alternatives for JSON mode.</td>
+            </tr>
+            <tr>
+              <td><code>reporting/report_generator.py</code></td>
+              <td><span class="sev-extend">Extend</span></td>
+              <td>Only HTML output. No JSON mode for React frontend.</td>
+              <td>Add <code>output_format="html"|"json"</code>. JSON path returns structured dict. Becomes HTMLRenderer + JSONRenderer.</td>
+            </tr>
+            <tr>
+              <td>All <code>__init__.py</code> + module files</td>
+              <td><span class="sev-rework">Rework</span></td>
+              <td><code>sys.path.append(...)</code> in every file — breaks on install.</td>
+              <td>Remove all path hacks. Use proper relative or absolute package imports throughout.</td>
+            </tr>
+            <tr>
+              <td><code>categorical/one_hot_encoder.py</code></td>
+              <td><span class="sev-extend">Extend</span></td>
+              <td><code>__transform()</code> and all public methods absent.</td>
+              <td>Implement <code>_transform()</code>, <code>_inverse_transform()</code>, public <code>fit()</code>, <code>transform()</code>, <code>fit_transform()</code>.</td>
+            </tr>
+            <tr>
+              <td><code>numerical/base_scaler.py</code></td>
+              <td><span class="sev-extend">Extend</span></td>
+              <td>Only one abstract stub method.</td>
+              <td>Flesh out <code>BaseScaler</code> to mirror <code>BaseEncoder</code>. Add StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, Normalizer.</td>
+            </tr>
+            <tr>
+              <td><code>pyproject.toml</code> / <code>setup.py</code></td>
+              <td><span class="sev-extend">Extend</span></td>
+              <td>No optional extras defined.</td>
+              <td>Add <code>[project.optional-dependencies]</code> with <code>sdk</code>, <code>webapp</code>, <code>sklearn</code>, <code>torch</code>, <code>tf</code>, <code>all</code> groups.</td>
+            </tr>
+            <tr>
+              <td><code>tests/</code></td>
+              <td><span class="sev-new">New Work</span></td>
+              <td>Both test files completely empty.</td>
+              <td>Write pytest tests for all encoders, reporter methods, analysis modules.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- INSTALL MODES -->
+    <section class="section" id="install">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(108,99,255,.12);color:#a78bfa">pkg</div>
+        <div><div class="section-title">Installation Modes</div><div class="section-desc">Like fastapi[standard] — install only what you need</div></div>
+      </div>
+      <div class="install-grid">
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite</div><div class="install-desc">Base only — pandas, matplotlib, seaborn, jinja2. Static HTML reports.</div></div>
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite[sdk]</div><div class="install-desc">Full SDK — adds plotly, numpy, kaleido, pyyaml. Three-tier Reporter API usable from Python.</div></div>
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite[webapp]</div><div class="install-desc">Web app — adds FastAPI, uvicorn, python-multipart. Serves the React frontend.</div></div>
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite[sklearn]</div><div class="install-desc">Adds scikit-learn adapter for ML pipeline and AutoML.</div></div>
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite[torch]</div><div class="install-desc">Adds PyTorch adapter, training loop, CNN models.</div></div>
+        <div class="install-card"><div class="install-cmd">pip install datainsight_lite[all]</div><div class="install-desc">Everything — SDK + WebApp + all ML backends + deployment.</div></div>
+      </div>
+      <div class="code-block"><span class="cm"># pyproject.toml — optional-dependencies</span>
+[project.optional-dependencies]
+sdk     = [<span class="str">"plotly&gt;=5.0"</span>, <span class="str">"numpy&gt;=1.21"</span>, <span class="str">"kaleido"</span>, <span class="str">"pyyaml"</span>]
+webapp  = [<span class="str">"fastapi&gt;=0.100"</span>, <span class="str">"uvicorn[standard]"</span>, <span class="str">"python-multipart"</span>, <span class="str">"aiofiles"</span>, <span class="str">"pydantic&gt;=2"</span>]
+sklearn = [<span class="str">"scikit-learn&gt;=1.2"</span>]
+torch   = [<span class="str">"torch&gt;=2.0"</span>, <span class="str">"torchvision"</span>]
+tf      = [<span class="str">"tensorflow&gt;=2.12"</span>]
+deploy  = [<span class="str">"fastapi&gt;=0.100"</span>, <span class="str">"uvicorn[standard]"</span>, <span class="str">"onnx"</span>, <span class="str">"onnxruntime"</span>]
+all     = [<span class="str">"datainsight_lite[sdk,webapp,sklearn,torch,tf,deploy]"</span>]</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- REPORTER ARCH -->
+    <section class="section" id="reporter-arch">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(0,212,170,.1);color:var(--accent2)">R</div>
+        <div><div class="section-title">Reporter Engine — Architecture</div><div class="section-desc">Central system powering all three tiers and both delivery modes</div></div>
+      </div>
+      <div class="arch" style="margin-bottom:24px">
+        <div class="arch-label">Entry Points</div>
+        <div class="arch-row">
+          <div class="arch-box ab-t">SDK: analyze("data.csv")<br><small style="font-weight:400">Novice one-liner</small></div>
+          <div class="arch-box ab-p">SDK: Reporter(mode="intermediate")<br><small style="font-weight:400">Selective analysis</small></div>
+          <div class="arch-box ab-r">SDK: Reporter(config=cfg)<br><small style="font-weight:400">Pro config-driven</small></div>
+          <div class="arch-box ab-y">REST: POST /api/analyze<br><small style="font-weight:400">WebApp tier router</small></div>
+        </div>
+        <div class="arch-arrow">&#8595;</div>
+        <div class="arch-label">Mode Dispatcher</div>
+        <div class="arch-row">
+          <div class="arch-box ab-p wide" style="max-width:100%;font-size:12px">ReporterEngine — validates data, routes to correct mode handler, returns ReportResult</div>
+        </div>
+        <div class="arch-arrow">&#8595;</div>
+        <div class="arch-label">Analysis Modules (shared by all modes)</div>
+        <div class="arch-row">
+          <div class="arch-box ab-g">DatasetProfiler<br><small style="font-weight:400">shape, dtypes, missing</small></div>
+          <div class="arch-box ab-g">UniVariateAnalyzer<br><small style="font-weight:400">distributions</small></div>
+          <div class="arch-box ab-g">BiVariateAnalyzer<br><small style="font-weight:400">pairwise</small></div>
+          <div class="arch-box ab-g">MultiVariateAnalyzer<br><small style="font-weight:400">correlation, PCA</small></div>
+          <div class="arch-box ab-g">OutlierAnalyzer<br><small style="font-weight:400">IQR, Z-score</small></div>
+        </div>
+        <div class="arch-arrow">&#8595;</div>
+        <div class="arch-label">Chart Factory (returns Figure objects — never calls plt.show())</div>
+        <div class="arch-row">
+          <div class="arch-box ab-p">Plotly backend<br><small style="font-weight:400">JSON-serializable</small></div>
+          <div class="arch-box ab-g">Matplotlib backend<br><small style="font-weight:400">base64 PNG for HTML</small></div>
+        </div>
+        <div class="arch-arrow">&#8595;</div>
+        <div class="arch-label">Output Renderers</div>
+        <div class="arch-row">
+          <div class="arch-box ab-t">HTMLRenderer<br><small style="font-weight:400">Jinja2 to .html</small></div>
+          <div class="arch-box ab-y">JSONRenderer<br><small style="font-weight:400">dict for API response</small></div>
+          <div class="arch-box ab-g">PDFRenderer<br><small style="font-weight:400">optional, weasyprint</small></div>
+        </div>
+      </div>
+      <div class="sub-label">Target File Structure</div>
+      <div class="code-block">datainsight_lite/datainsight/reporting/
+  engine.py                 <span class="cm"># ReporterEngine — core dispatcher (replaces reporter.py)</span>
+  config.py                 <span class="cm"># ReportConfig dataclass (Pro mode)</span>
+  result.py                 <span class="cm"># ReportResult dataclass</span>
+  modes/
+    novice.py               <span class="cm"># auto-runs everything with smart defaults</span>
+    intermediate.py         <span class="cm"># user picks modules + columns + chart type</span>
+    pro.py                  <span class="cm"># executes ReportConfig spec</span>
+  analysis/
+    dataset_profiler.py     <span class="cm"># shape, dtypes, missing %, cardinality, skew, kurtosis</span>
+    univariate.py           <span class="cm"># refactored from UniVariateAnalysis — returns ChartResult list</span>
+    bivariate.py            <span class="cm"># refactored from BiVariateAnalysis</span>
+    multivariate.py         <span class="cm"># refactored from MultiVariateAnalysis</span>
+    outlier_analysis.py     <span class="cm"># extracted from reporter.py</span>
+  charts/
+    chart_factory.py        <span class="cm"># factory(type, data, backend) to ChartResult</span>
+    chart_config.py         <span class="cm"># theme, colors, layout defaults</span>
+  renderers/
+    html_renderer.py        <span class="cm"># replaces report_generator.py</span>
+    json_renderer.py        <span class="cm"># new — for API responses</span>
+    pdf_renderer.py         <span class="cm"># optional</span></div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- REPORTER TIERS -->
+    <section class="section" id="reporter-tiers">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(108,99,255,.12);color:var(--accent)">T</div>
+        <div><div class="section-title">Reporter Engine — Three Access Tiers</div><div class="section-desc">Same engine, progressively more control</div></div>
+      </div>
+      <div class="tier-grid" style="margin-bottom:28px">
+        <div class="tier-card tier-1">
+          <div class="tier-label">Tier 1 - Novice</div>
+          <h3>Zero-config EDA</h3>
+          <p>System runs a full opinionated analysis automatically. User just provides the file.</p>
+          <div class="code-block">
+<span class="kw">from</span> datainsight_lite <span class="kw">import</span> <span class="fn">analyze</span>
+
+<span class="cm"># One-liner, full report</span>
+<span class="fn">analyze</span>(<span class="str">"customers.csv"</span>)
+<span class="cm"># generates report.html with:</span>
+<span class="cm"># dataset profile</span>
+<span class="cm"># all univariate plots</span>
+<span class="cm"># correlation heatmap</span>
+<span class="cm"># outlier summary</span>
+<span class="cm"># missing value chart</span>
+<span class="cm"># text insights</span></div>
+        </div>
+        <div class="tier-card tier-2">
+          <div class="tier-label">Tier 2 - Intermediate</div>
+          <h3>Selective Analysis</h3>
+          <p>Choose which modules, columns, and chart types to use.</p>
+          <div class="code-block">
+<span class="kw">from</span> datainsight_lite <span class="kw">import</span> <span class="cls">Reporter</span>
+
+r = <span class="cls">Reporter</span>(<span class="str">"customers.csv"</span>,
+            mode=<span class="str">"intermediate"</span>)
+r.<span class="fn">select</span>(
+  modules=[<span class="str">"univariate"</span>,
+           <span class="str">"correlation"</span>],
+  columns=[<span class="str">"Age"</span>, <span class="str">"Income"</span>],
+  chart_type=<span class="str">"plotly"</span>
+)
+r.<span class="fn">render</span>(<span class="str">"report.html"</span>)
+data = r.<span class="fn">to_json</span>()</div>
+        </div>
+        <div class="tier-card tier-3">
+          <div class="tier-label">Tier 3 - Pro</div>
+          <h3>Dashboard Config</h3>
+          <p>Define every chart, layout, theme, and analysis parameter.</p>
+          <div class="code-block">
+<span class="kw">from</span> datainsight_lite <span class="kw">import</span> (
+    <span class="cls">Reporter</span>, <span class="cls">ReportConfig</span>)
+
+cfg = <span class="cls">ReportConfig</span>(theme=<span class="str">"dark"</span>)
+cfg.<span class="fn">add_chart</span>(<span class="str">"histogram"</span>,
+  col=<span class="str">"Age"</span>, bins=<span class="num">40</span>)
+cfg.<span class="fn">add_chart</span>(<span class="str">"scatter"</span>,
+  x=<span class="str">"Age"</span>, y=<span class="str">"Income"</span>,
+  color=<span class="str">"Gender"</span>)
+cfg.<span class="fn">add_section</span>(<span class="str">"outliers"</span>,
+  method=<span class="str">"zscore"</span>)
+cfg.<span class="fn">set_layout</span>(columns=<span class="num">3</span>)
+
+<span class="cls">Reporter</span>(<span class="str">"customers.csv"</span>,
+         config=cfg).<span class="fn">render</span>(<span class="str">"d.html"</span>)</div>
+        </div>
+      </div>
+      <div class="sub-label">Module matrix per tier</div>
+      <div style="overflow-x:auto">
+        <table class="change-table">
+          <thead><tr><th>Analysis Module</th><th style="color:var(--accent2)">Novice</th><th style="color:var(--accent)">Intermediate</th><th style="color:var(--accent4)">Pro</th></tr></thead>
+          <tbody>
+            <tr><td>Dataset Profile</td><td>Always, full</td><td>Always</td><td>Configurable sections</td></tr>
+            <tr><td>Univariate distributions</td><td>All columns</td><td>Selected columns</td><td>Per-chart spec</td></tr>
+            <tr><td>Bivariate analysis</td><td>Top 5 correlated pairs</td><td>Selected pairs</td><td>Per-chart spec</td></tr>
+            <tr><td>Correlation heatmap</td><td>Auto</td><td>Selectable</td><td>Config method + cols</td></tr>
+            <tr><td>Outlier detection</td><td>IQR all numeric cols</td><td>Selectable</td><td>IQR / Z-score / threshold</td></tr>
+            <tr><td>Text insights</td><td>Auto-generated</td><td>Selectable</td><td>Custom</td></tr>
+            <tr><td>Chart backend</td><td>Plotly (interactive)</td><td>Plotly or Matplotlib</td><td>Any, per chart</td></tr>
+            <tr><td>Layout</td><td>Auto 2-col</td><td>Auto with overrides</td><td>User-defined grid</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- REPORTER SDK API -->
+    <section class="section" id="reporter-api">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(247,201,72,.1);color:var(--accent3)">A</div>
+        <div><div class="section-title">Reporter Engine — SDK Public API</div><div class="section-desc">Python-first interface for datainsight_lite[sdk]</div></div>
+      </div>
+      <div class="sub-label">ReportResult — unified output object</div>
+      <div class="code-block" style="margin-bottom:20px">
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="cls">ReportResult</span>:
+    profile:     <span class="cls">DatasetProfile</span>      <span class="cm"># shape, dtypes, missing, cardinality</span>
+    univariate:  <span class="cls">List[ChartResult]</span>    <span class="cm"># one entry per analyzed column</span>
+    bivariate:   <span class="cls">List[ChartResult]</span>    <span class="cm"># one entry per pair</span>
+    correlation: <span class="cls">ChartResult</span>         <span class="cm"># heatmap</span>
+    outliers:    <span class="cls">OutlierResult</span>       <span class="cm"># col to count, method, affected rows</span>
+    insights:    <span class="cls">List[str]</span>           <span class="cm"># auto-generated text observations</span>
+    metadata:    <span class="cls">ReportMetadata</span>      <span class="cm"># mode, timestamp, config snapshot</span>
+
+    <span class="kw">def</span> <span class="fn">to_html</span>(self, path: <span class="cls">str</span>) -> <span class="cls">None</span>: ...
+    <span class="kw">def</span> <span class="fn">to_json</span>(self)          -> <span class="cls">dict</span>: ...
+    <span class="kw">def</span> <span class="fn">to_pdf</span>(self,  path: <span class="cls">str</span>) -> <span class="cls">None</span>: ... <span class="cm"># requires [pdf] extra</span></div>
+
+      <div class="sub-label">ChartResult — unified chart container</div>
+      <div class="code-block" style="margin-bottom:20px">
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="cls">ChartResult</span>:
+    chart_type:  <span class="cls">str</span>           <span class="cm"># "histogram" | "scatter" | "heatmap" | ...</span>
+    columns:     <span class="cls">List[str]</span>
+    plotly_json: <span class="cls">dict | None</span>  <span class="cm"># serializable — react-plotly.js renders directly</span>
+    mpl_base64:  <span class="cls">str  | None</span>  <span class="cm"># base64 PNG for HTML reports</span>
+    title:       <span class="cls">str</span>
+    insights:    <span class="cls">List[str]</span>     <span class="cm"># per-chart observations</span></div>
+
+      <div class="sub-label">ReportConfig — Pro mode builder</div>
+      <div class="code-block">
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="cls">ReportConfig</span>:
+    theme:       <span class="cls">str</span>  = <span class="str">"light"</span>     <span class="cm"># "light" | "dark" | custom hex dict</span>
+    layout_cols: <span class="cls">int</span>  = <span class="num">2</span>
+    charts:      <span class="cls">List[ChartSpec]</span>   = field(default_factory=list)
+    sections:    <span class="cls">List[SectionSpec]</span> = field(default_factory=list)
+
+    <span class="kw">def</span> <span class="fn">add_chart</span>(self, chart_type, **kwargs) -> <span class="str">"ReportConfig"</span>: ...
+    <span class="kw">def</span> <span class="fn">add_section</span>(self, section, **kwargs) -> <span class="str">"ReportConfig"</span>: ...
+    <span class="kw">def</span> <span class="fn">set_layout</span>(self, columns: <span class="cls">int</span>)       -> <span class="str">"ReportConfig"</span>: ...
+
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">from_yaml</span>(cls, path: <span class="cls">str</span>)  -> <span class="str">"ReportConfig"</span>: ...
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">from_dict</span>(cls, d: <span class="cls">dict</span>)    -> <span class="str">"ReportConfig"</span>: ...</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- REPORTER WEBAPP -->
+    <section class="section" id="reporter-web">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(255,107,107,.1);color:var(--accent4)">W</div>
+        <div><div class="section-title">WebApp — React + FastAPI</div><div class="section-desc">datainsight_lite[webapp] — same engine, browser-based UI</div></div>
+      </div>
+      <div class="arch" style="margin-bottom:24px">
+        <div class="arch-label">Browser — React SPA (Vite + TypeScript)</div>
+        <div class="arch-row">
+          <div class="arch-box ab-p">Upload View<br><small style="font-weight:400">drag &amp; drop CSV/image</small></div>
+          <div class="arch-box ab-p">Novice Dashboard<br><small style="font-weight:400">auto full report</small></div>
+          <div class="arch-box ab-p">Intermediate Panel<br><small style="font-weight:400">module + column picker</small></div>
+          <div class="arch-box ab-p">Pro Dashboard<br><small style="font-weight:400">drag-drop chart builder</small></div>
+        </div>
+        <div class="arch-arrow">REST JSON — react-plotly.js renders charts directly from Plotly JSON</div>
+        <div class="arch-label">FastAPI Backend — datainsight_lite/api/</div>
+        <div class="arch-row">
+          <div class="arch-box ab-t">POST /api/upload</div>
+          <div class="arch-box ab-t">GET /api/profile/{id}</div>
+          <div class="arch-box ab-t">POST /api/analyze</div>
+          <div class="arch-box ab-t">GET /api/chart/{id}</div>
+          <div class="arch-box ab-t">POST /api/export</div>
+        </div>
+        <div class="arch-arrow">&#8595; calls Python SDK</div>
+        <div class="arch-label">Reporter Engine (shared with SDK — no duplication)</div>
+        <div class="arch-row">
+          <div class="arch-box ab-g wide" style="max-width:100%;font-size:12px">ReporterEngine > JSONRenderer > Plotly JSON > React renders charts natively via react-plotly.js</div>
+        </div>
+      </div>
+      <div class="sub-label">FastAPI Endpoints</div>
+      <table class="ep-table" style="margin-bottom:20px">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Request</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method m-post">POST</span></td><td class="ep-path">/api/upload</td><td>Upload dataset file</td><td>multipart/form-data</td><td>dataset_id, preview, column types</td></tr>
+          <tr><td><span class="method m-get">GET</span></td><td class="ep-path">/api/profile/{id}</td><td>Fast dataset profile</td><td>—</td><td>DatasetProfile JSON</td></tr>
+          <tr><td><span class="method m-post">POST</span></td><td class="ep-path">/api/analyze</td><td>Run analysis</td><td>{ dataset_id, mode, config? }</td><td>ReportResult JSON (Plotly specs)</td></tr>
+          <tr><td><span class="method m-get">GET</span></td><td class="ep-path">/api/chart/{id}</td><td>Single chart</td><td>—</td><td>ChartResult JSON</td></tr>
+          <tr><td><span class="method m-post">POST</span></td><td class="ep-path">/api/export</td><td>Export report</td><td>{ id, format: html|pdf|json }</td><td>File download</td></tr>
+          <tr><td><span class="method m-delete">DELETE</span></td><td class="ep-path">/api/session/{id}</td><td>Clear session data</td><td>—</td><td>{ ok: true }</td></tr>
+        </tbody>
+      </table>
+      <div class="sub-label">React Frontend Structure</div>
+      <div class="code-block">webapp/                          <span class="cm"># Vite + TypeScript React app</span>
+  src/
+    components/
+      upload/DropZone.tsx          <span class="cm"># drag-drop with live column preview</span>
+      dashboard/
+        NoviceDashboard.tsx        <span class="cm"># auto-renders full ReportResult JSON</span>
+        IntermediatePanel.tsx      <span class="cm"># module + column checkboxes, chart type toggle</span>
+        ProBuilder.tsx             <span class="cm"># drag-drop chart composer + YAML editor</span>
+        ChartCard.tsx              <span class="cm"># renders any Plotly chart from JSON spec</span>
+        ProfileCard.tsx            <span class="cm"># dataset summary header card</span>
+        OutlierTable.tsx
+      shared/
+        TierSelector.tsx           <span class="cm"># Novice / Intermediate / Pro switcher</span>
+        ExportBar.tsx              <span class="cm"># HTML / PDF / JSON download</span>
+    api/client.ts                  <span class="cm"># axios wrapper for all endpoints</span>
+    store/reportStore.ts           <span class="cm"># zustand session state</span></div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASE 0 -->
+    <section class="section" id="phase0">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(34,197,94,.1);color:var(--done)">0</div>
+        <div><div class="section-title">Phase 0 — Fix &amp; Harden Current Code</div><div class="section-desc">Must complete before any new development · Scope: Small</div></div>
+      </div>
+      <div class="task-list">
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Remove all sys.path.append hacks — use proper package imports</div><div class="task-file">datainsight/__init__.py · feature_analysis/*.py · reporting/*.py</div><div class="tags"><span class="tag tag-high">Breaks on install</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Fix feature_analysis/__init__.py — convert bare imports to relative</div><div class="task-file">feature_analysis/__init__.py</div><div class="tags"><span class="tag tag-high">Breaks on install</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Rewrite FeatureAnalysis base class — remove Reporter dependency, accept DataFrame</div><div class="task-file">feature_analysis/feature_analysis.py</div><div class="tags"><span class="tag tag-high">Broken now</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Convert all plt.show() calls to return Figure objects</div><div class="task-file">univariate_analysis.py · bivariate_analysis.py · multivariate_analysis.py</div><div class="tags"><span class="tag tag-high">Blocks API</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Remove disk file side-effects from Reporter — return base64 inline</div><div class="task-file">reporting/reporter.py</div><div class="tags"><span class="tag tag-high">Blocks API</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Complete OneHotEncoder — _transform(), _inverse_transform(), full public API</div><div class="task-file">categorical/one_hot_encoder.py</div><div class="tags"><span class="tag tag-high">Incomplete</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Flesh out BaseScaler + add StandardScaler, MinMaxScaler, RobustScaler</div><div class="task-file">numerical/base_scaler.py · numerical/</div><div class="tags"><span class="tag tag-high">Missing</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">Add optional extras to pyproject.toml and setup.py</div><div class="task-file">pyproject.toml · setup.py</div><div class="tags"><span class="tag tag-med">Install modes</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">Write pytest tests for all existing encoders and reporter methods</div><div class="task-file">tests/test_core.py</div><div class="tags"><span class="tag tag-med">Tests</span></div></div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASE 1 -->
+    <section class="section" id="phase1">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(0,212,170,.1);color:var(--accent2)">1</div>
+        <div><div class="section-title">Phase 1 — Reporter Engine (Core)</div><div class="section-desc">Build the new engine on top of the fixed base · Scope: Large</div></div>
+      </div>
+      <div class="sub-label">1.1 Analysis Modules (refactor existing)</div>
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card"><div class="m-path">analysis/dataset_profiler.py</div><div class="m-title">DatasetProfiler</div><div class="m-desc">shape, dtypes, missing %, cardinality, skew, kurtosis, sample rows. Returns DatasetProfile dataclass.</div></div>
+        <div class="card"><div class="m-path">analysis/univariate.py</div><div class="m-title">UniVariateAnalyzer</div><div class="m-desc">Refactored. Returns List[ChartResult]. No plt.show(). Plotly + mpl backends.</div></div>
+        <div class="card"><div class="m-path">analysis/bivariate.py</div><div class="m-title">BiVariateAnalyzer</div><div class="m-desc">Refactored. Auto-selects top correlated pairs for Novice mode.</div></div>
+        <div class="card"><div class="m-path">analysis/multivariate.py</div><div class="m-title">MultiVariateAnalyzer</div><div class="m-desc">Refactored. Correlation heatmap, PCA 2D/3D scatter.</div></div>
+        <div class="card"><div class="m-path">analysis/outlier_analysis.py</div><div class="m-title">OutlierAnalyzer</div><div class="m-desc">Extracted from reporter.py. IQR + Z-score. Returns per-column counts and row indices.</div></div>
+      </div>
+      <div class="sub-label">1.2 Chart Factory</div>
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card"><div class="m-path">charts/chart_factory.py</div><div class="m-title">ChartFactory</div><div class="m-desc">factory(chart_type, data, backend, **kwargs) returns ChartResult. Single entry point for all chart creation.</div></div>
+        <div class="card"><div class="m-path">charts/chart_config.py</div><div class="m-title">ChartConfig</div><div class="m-desc">Global theme (light/dark), color palette, font, Plotly template. Applied to every chart.</div></div>
+      </div>
+      <div class="sub-label">1.3 Mode Handlers</div>
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card"><div class="m-path">modes/novice.py</div><div class="m-title">NoviceReporter</div><div class="m-desc">Runs all 5 analysis modules with smart defaults. Generates insights text per section. No user input required.</div></div>
+        <div class="card"><div class="m-path">modes/intermediate.py</div><div class="m-title">IntermediateReporter</div><div class="m-desc">Accepts modules=[], columns=[], chart_type=. Validates and delegates to relevant analyzers.</div></div>
+        <div class="card"><div class="m-path">modes/pro.py</div><div class="m-title">ProReporter</div><div class="m-desc">Accepts a ReportConfig object. Executes only specified ChartSpec/SectionSpec in declared layout.</div></div>
+      </div>
+      <div class="sub-label">1.4 Output Renderers + Dataclasses</div>
+      <div class="grid-3">
+        <div class="card"><div class="m-path">renderers/html_renderer.py</div><div class="m-title">HTMLRenderer</div><div class="m-desc">Replaces report_generator.py. Jinja2. Embeds Plotly charts as JSON + CDN script, or base64 PNGs.</div></div>
+        <div class="card"><div class="m-path">renderers/json_renderer.py</div><div class="m-title">JSONRenderer</div><div class="m-desc">Serializes ReportResult to JSON dict. Plotly figures via plotly.io.to_json(). Used by API layer.</div></div>
+        <div class="card"><div class="m-path">result.py + config.py</div><div class="m-title">Dataclasses</div><div class="m-desc">ReportResult (to_html/to_json/to_pdf) · ReportConfig (chainable builder, from_yaml, from_dict).</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASE 2 -->
+    <section class="section" id="phase2">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(108,99,255,.12);color:var(--accent)">2</div>
+        <div><div class="section-title">Phase 2 — SDK Layer &amp; Package Polish</div><div class="section-desc">Clean public API + CLI + preprocessing completion · Scope: Small-Medium</div></div>
+      </div>
+      <div class="task-list">
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">Clean top-level __init__.py — expose analyze(), Reporter, ReportConfig</div><div class="task-file">datainsight_lite/__init__.py</div><div class="tags"><span class="tag tag-new">New Public API</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">CLI — datainsight analyze data.csv --mode novice --output report.html</div><div class="task-file">datainsight_lite/cli.py</div><div class="tags"><span class="tag tag-new">New</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">YAML config support — ReportConfig.from_yaml()</div><div class="task-file">reporting/config.py</div><div class="tags"><span class="tag tag-med">Pro Tier</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">Updated Jinja2 template — dark/light theme toggle, embedded Plotly charts</div><div class="task-file">templates/report_v2.html</div><div class="tags"><span class="tag tag-med">UI</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">MaxAbsScaler, Normalizer, PowerTransformer, QuantileTransformer</div><div class="task-file">numerical/</div><div class="tags"><span class="tag tag-med">Preprocessing</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">TargetEncoder, BinaryEncoder, HashingEncoder</div><div class="task-file">categorical/</div><div class="tags"><span class="tag tag-med">Preprocessing</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">Full test coverage for all Reporter Engine modes and renderers</div><div class="task-file">tests/</div><div class="tags"><span class="tag tag-med">Tests</span></div></div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASE 3 -->
+    <section class="section" id="phase3">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(255,107,107,.1);color:var(--accent4)">3</div>
+        <div><div class="section-title">Phase 3 — WebApp: FastAPI Backend + React Frontend</div><div class="section-desc">datainsight_lite[webapp] — browser-based interactive EDA · Scope: Large</div></div>
+      </div>
+      <div class="sub-label">3.1 FastAPI Backend</div>
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card"><div class="m-path">api/app.py</div><div class="m-title">FastAPI App</div><div class="m-desc">App factory. CORS, static file serving (React build), session middleware.</div></div>
+        <div class="card"><div class="m-path">api/routers/analysis.py</div><div class="m-title">Analysis Router</div><div class="m-desc">/upload, /profile, /analyze, /chart/{id}, /export. Delegates to ReporterEngine.</div></div>
+        <div class="card"><div class="m-path">api/routers/session.py</div><div class="m-title">Session Router</div><div class="m-desc">In-memory dataset store (tempfile-backed). DELETE /session/{id} to purge.</div></div>
+        <div class="card"><div class="m-path">api/schemas/</div><div class="m-title">Pydantic Schemas</div><div class="m-desc">AnalyzeRequest · AnalyzeResponse · ChartResponse · ProfileResponse. Strict validation.</div></div>
+        <div class="card"><div class="m-path">api/deps.py</div><div class="m-title">Dependencies</div><div class="m-desc">get_engine() returns ReporterEngine singleton. get_session() returns SessionStore.</div></div>
+        <div class="card"><div class="m-path">api/server.py</div><div class="m-title">CLI Launcher</div><div class="m-desc">datainsight serve [--host] [--port] — uvicorn startup, React at /</div></div>
+      </div>
+      <div class="sub-label">3.2 React Frontend — key components</div>
+      <div class="task-list" style="margin-bottom:20px">
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">TierSelector — Novice / Intermediate / Pro switcher, contextual UI per tier</div><div class="tags"><span class="tag tag-high">Core UX</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">DropZone — CSV/image upload with live column type preview</div><div class="tags"><span class="tag tag-high">Core UX</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">NoviceDashboard — auto-renders full ReportResult JSON with Plotly charts</div><div class="tags"><span class="tag tag-high">Tier 1</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">IntermediatePanel — module checkboxes, column multi-select, chart type toggle</div><div class="tags"><span class="tag tag-high">Tier 2</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-high"></div><div class="task-body"><div class="task-title">ProBuilder — drag-drop chart composer, layout grid, live YAML config editor</div><div class="tags"><span class="tag tag-high">Tier 3</span></div></div></div>
+        <div class="task-card"><div class="task-check tc-med"></div><div class="task-body"><div class="task-title">ExportBar — one-click HTML / PDF / JSON export download</div><div class="tags"><span class="tag tag-med">Export</span></div></div></div>
+      </div>
+      <div class="sub-label">3.3 Ship React build inside Python package</div>
+      <div class="code-block"><span class="cm"># Build React to datainsight_lite/api/static/</span>
+<span class="cm"># FastAPI catch-all serves index.html for SPA routing</span>
+<span class="cm"># datainsight serve opens http://localhost:8501</span>
+
+[tool.setuptools.package-data]
+<span class="str">"datainsight_lite"</span> = [<span class="str">"api/static/**/*"</span>, <span class="str">"datainsight/templates/**/*"</span>]</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- PHASES 4-8 -->
+    <section class="section" id="phase4">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(108,99,255,.12);color:var(--accent)">4</div>
+        <div><div class="section-title">Phase 4 — Adapter System + Data Ingestion + Pipeline</div><div class="section-desc">ML backbone · Scope: Large</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="m-path">adapters/base_adapter.py</div><div class="m-title">BaseAdapter (ABC)</div><div class="m-desc">fit, predict, evaluate, save, load, get_params, set_params. backend property.</div></div>
+        <div class="card"><div class="m-path">adapters/sklearn_adapter.py</div><div class="m-title">SklearnAdapter</div><div class="m-desc">Wraps any sklearn estimator. joblib persistence.</div></div>
+        <div class="card"><div class="m-path">adapters/torch_adapter.py</div><div class="m-title">TorchAdapter</div><div class="m-desc">Wraps nn.Module + DataLoader. CPU/GPU/MPS auto-detect.</div></div>
+        <div class="card"><div class="m-path">adapters/tensorflow_adapter.py</div><div class="m-title">TFAdapter</div><div class="m-desc">Wraps Keras model. SavedModel / .h5 persistence.</div></div>
+        <div class="card"><div class="m-path">ingestion/</div><div class="m-title">Data Ingesters</div><div class="m-desc">TabularIngester (CSV/Excel/JSON/Parquet) · ImageIngester (file/dir/zip) returns DataBundle.</div></div>
+        <div class="card"><div class="m-path">pipeline/ + models/</div><div class="m-title">Pipeline + Registry</div><div class="m-desc">DAG Pipeline: add_step, add_model, fit, compare. ModelRegistry with @register decorator.</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="phase5">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(0,212,170,.1);color:var(--accent2)">5</div>
+        <div><div class="section-title">Phase 5 — Preprocessing Completion</div><div class="section-desc">Full suite for all data types · Scope: Medium</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="m-title" style="color:var(--done)">5 encoders done</div><div class="m-desc">LabelEncoder · OrdinalEncoder · CountFrequencyEncoder · LabelBinarizer · OneHotEncoder (Phase 0)</div></div>
+        <div class="card"><div class="m-title">3 new encoders</div><div class="m-desc">TargetEncoder · BinaryEncoder · HashingEncoder</div></div>
+        <div class="card"><div class="m-title">7 scalers</div><div class="m-desc">StandardScaler · MinMaxScaler · RobustScaler · MaxAbsScaler · Normalizer · PowerTransformer · QuantileTransformer</div></div>
+        <div class="card"><div class="m-path">preprocessing/image/</div><div class="m-title">Image Transforms</div><div class="m-desc">Resize · Normalize · Augment (flip/crop/jitter) · Compose pipeline</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="phase6">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(0,212,170,.1);color:var(--accent2)">6</div>
+        <div><div class="section-title">Phase 6 — AutoML (Tier 1 ML)</div><div class="section-desc">Drop a file, get trained models · Scope: Large</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="m-title">TaskDetector</div><div class="m-desc">Infer classification/regression/clustering. Detect modality + class imbalance.</div></div>
+        <div class="card"><div class="m-title">AutoPreprocessor</div><div class="m-desc">Auto-select encoder + scaler per column dtype. Impute missing values.</div></div>
+        <div class="card"><div class="m-title">ModelSelector</div><div class="m-desc">Pick candidate models from registry by task + backend.</div></div>
+        <div class="card"><div class="m-title">AutoTrainer</div><div class="m-desc">Train all selected models. Feed metrics to dashboard callback.</div></div>
+        <div class="card"><div class="m-title">Comparator</div><div class="m-desc">comparison_report.html — metric table + learning curves. best_model.json.</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="phase7">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(255,107,107,.1);color:var(--accent4)">7</div>
+        <div><div class="section-title">Phase 7 — Expert API + Training Dashboard</div><div class="section-desc">Custom layers, training loops, live metrics · Scope: Medium</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="m-path">core/base_layer.py</div><div class="m-title">BaseLayer (ABC)</div><div class="m-desc">Backend-agnostic. @torch_layer / @tf_layer decorators bind backend.</div></div>
+        <div class="card"><div class="m-path">training/trainer.py</div><div class="m-title">Trainer</div><div class="m-desc">Trainer(adapter, callbacks, dashboard=True). Override train_step() for custom loops.</div></div>
+        <div class="card"><div class="m-path">training/callbacks/</div><div class="m-title">Callbacks</div><div class="m-desc">EarlyStopping · ModelCheckpoint · LRScheduler · DashboardCallback (Keras-style)</div></div>
+        <div class="card"><div class="m-path">dashboard/</div><div class="m-title">Training Dashboard</div><div class="m-desc">Flask + Plotly.js. SSE epoch metrics. Per-model tab + comparison tab.</div></div>
+        <div class="card"><div class="m-path">pipeline/search.py</div><div class="m-title">Hyperparameter Search</div><div class="m-desc">Grid + Random. Optional Optuna Bayesian optimization.</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="section" id="phase8">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(247,201,72,.1);color:var(--accent3)">8</div>
+        <div><div class="section-title">Phase 8 — Deployment Layer</div><div class="section-desc">Export, serve, test trained models · Scope: Medium</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="m-path">deployment/exporter.py</div><div class="m-title">Exporter</div><div class="m-desc">.pkl · TorchScript .pt · SavedModel · ONNX (all backends)</div></div>
+        <div class="card"><div class="m-path">deployment/server.py</div><div class="m-title">Prediction Server</div><div class="m-desc">deploy(model, port=8000) returns POST /predict. Auto OpenAPI schema.</div></div>
+        <div class="card"><div class="m-path">deployment/test_client.py</div><div class="m-title">TestClient</div><div class="m-desc">Python helper + CLI. Batch CSV prediction mode.</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- BUILD ORDER -->
+    <section class="section" id="order">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(247,201,72,.1);color:var(--accent3)">-></div>
+        <div><div class="section-title">Recommended Build Order</div><div class="section-desc">EDA engine ships as a complete product first; ML layers follow</div></div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">0</div><div class="tl-body"><div class="tl-title">Fix &amp; Harden Current Code</div><div class="tl-sub">Path hacks · broken imports · plt.show() to Figure · disk files to base64</div></div><span class="tl-scope scope-s">Small</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">1</div><div class="tl-body"><div class="tl-title">Reporter Engine — Analysis + Charts + Modes + Renderers</div><div class="tl-sub">Novice / Intermediate / Pro · Plotly backend · HTML + JSON renderers</div></div><span class="tl-scope scope-l">Large</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">2</div><div class="tl-body"><div class="tl-title">SDK Layer — Public API + CLI + Package Polish</div><div class="tl-sub">analyze() · Reporter · ReportConfig · CLI · optional extras · updated template</div></div><span class="tl-scope scope-m">Medium</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">3</div><div class="tl-body"><div class="tl-title">WebApp — FastAPI Backend + React Frontend</div><div class="tl-sub">All endpoints · Tier Selector · NoviceDashboard · IntermediatePanel · ProBuilder</div></div><span class="tl-scope scope-l">Large</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">4</div><div class="tl-body"><div class="tl-title">Adapter System + Data Ingestion + Pipeline Orchestrator</div><div class="tl-sub">sklearn / PyTorch / TF adapters · DAG pipeline · Model Registry</div></div><span class="tl-scope scope-l">Large</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">5</div><div class="tl-body"><div class="tl-title">Preprocessing Completion</div><div class="tl-sub">All scalers · new encoders · image transforms</div></div><span class="tl-scope scope-m">Medium</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">6</div><div class="tl-body"><div class="tl-title">AutoML (Tier 1 ML)</div><div class="tl-sub">Task detection · auto preprocessing · model pools · comparison report</div></div><span class="tl-scope scope-l">Large</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">7</div><div class="tl-body"><div class="tl-title">Expert API + Training Dashboard</div><div class="tl-sub">BaseLayer · Trainer · Callbacks · SSE live metrics</div></div><span class="tl-scope scope-m">Medium</span></div></div>
+        <div class="tl-item"><div class="tl-card"><div class="tl-order">8</div><div class="tl-body"><div class="tl-title">Deployment Layer</div><div class="tl-sub">ONNX export · FastAPI prediction server · test client</div></div><span class="tl-scope scope-m">Medium</span></div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- DEPENDENCIES -->
+    <section class="section" id="deps">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(108,99,255,.12);color:#a78bfa">D</div>
+        <div><div class="section-title">Dependency Plan</div><div class="section-desc">Organized by phase and install extra</div></div>
+      </div>
+      <div class="dep-grid">
+        <div class="dep-card"><div class="dep-name">pandas</div><div class="dep-desc">Tabular data</div><div class="dep-when" style="color:var(--done)">Now · base</div></div>
+        <div class="dep-card"><div class="dep-name">matplotlib</div><div class="dep-desc">Static charts</div><div class="dep-when" style="color:var(--done)">Now · base</div></div>
+        <div class="dep-card"><div class="dep-name">seaborn</div><div class="dep-desc">Statistical plots</div><div class="dep-when" style="color:var(--done)">Now · base</div></div>
+        <div class="dep-card"><div class="dep-name">jinja2</div><div class="dep-desc">HTML templates</div><div class="dep-when" style="color:var(--done)">Now · base</div></div>
+        <div class="dep-card"><div class="dep-name">numpy</div><div class="dep-desc">Array ops</div><div class="dep-when" style="color:#64748b">Phase 0 · base</div></div>
+        <div class="dep-card"><div class="dep-name">plotly</div><div class="dep-desc">Interactive charts + JSON</div><div class="dep-when" style="color:var(--accent)">Phase 1 · [sdk]</div></div>
+        <div class="dep-card"><div class="dep-name">kaleido</div><div class="dep-desc">Plotly static export</div><div class="dep-when" style="color:var(--accent)">Phase 1 · [sdk]</div></div>
+        <div class="dep-card"><div class="dep-name">pyyaml</div><div class="dep-desc">ReportConfig YAML</div><div class="dep-when" style="color:var(--accent)">Phase 2 · [sdk]</div></div>
+        <div class="dep-card"><div class="dep-name">fastapi</div><div class="dep-desc">REST API backend</div><div class="dep-when" style="color:var(--accent4)">Phase 3 · [webapp]</div></div>
+        <div class="dep-card"><div class="dep-name">uvicorn[standard]</div><div class="dep-desc">ASGI server</div><div class="dep-when" style="color:var(--accent4)">Phase 3 · [webapp]</div></div>
+        <div class="dep-card"><div class="dep-name">python-multipart</div><div class="dep-desc">File upload</div><div class="dep-when" style="color:var(--accent4)">Phase 3 · [webapp]</div></div>
+        <div class="dep-card"><div class="dep-name">pydantic v2</div><div class="dep-desc">Schema validation</div><div class="dep-when" style="color:var(--accent4)">Phase 3 · [webapp]</div></div>
+        <div class="dep-card"><div class="dep-name">scikit-learn</div><div class="dep-desc">sklearn adapter</div><div class="dep-when" style="color:var(--accent)">Phase 4 · [sklearn]</div></div>
+        <div class="dep-card"><div class="dep-name">torch</div><div class="dep-desc">PyTorch adapter</div><div class="dep-when" style="color:var(--accent)">Phase 4 · [torch]</div></div>
+        <div class="dep-card"><div class="dep-name">tensorflow</div><div class="dep-desc">TF/Keras adapter</div><div class="dep-when" style="color:var(--accent)">Phase 4 · [tf]</div></div>
+        <div class="dep-card"><div class="dep-name">pillow</div><div class="dep-desc">Image loading</div><div class="dep-when" style="color:var(--accent)">Phase 4 · [sdk]</div></div>
+        <div class="dep-card"><div class="dep-name">flask</div><div class="dep-desc">Training dashboard</div><div class="dep-when" style="color:var(--muted)">Phase 7</div></div>
+        <div class="dep-card"><div class="dep-name">onnx + onnxruntime</div><div class="dep-desc">Model export</div><div class="dep-when" style="color:var(--muted)">Phase 8 · [deploy]</div></div>
+        <div class="dep-card"><div class="dep-name">optuna</div><div class="dep-desc">Bayesian HPO</div><div class="dep-when" style="color:var(--muted)">Phase 7 · optional</div></div>
+        <div class="dep-card"><div class="dep-name">weasyprint</div><div class="dep-desc">HTML to PDF</div><div class="dep-when" style="color:var(--muted)">Phase 2 · [pdf] opt</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- DECISIONS -->
+    <section class="section" id="decisions">
+      <div class="section-header">
+        <div class="phase-num" style="background:rgba(245,158,11,.1);color:var(--partial)">?</div>
+        <div><div class="section-title">Open Design Decisions</div><div class="section-desc">Resolve before Phase 1 implementation begins</div></div>
+      </div>
+      <div class="decision-card"><div class="decision-q">1. Session storage for the WebApp?</div><div class="decision-r">In-memory dict (simple, lost on restart) vs. Redis (persistent, multi-user) vs. temp files. <strong>Start with in-memory + tempfile backup; add Redis as optional extra later.</strong></div></div>
+      <div class="decision-card"><div class="decision-q">2. React chart library?</div><div class="decision-r">react-plotly.js (matches Python backend, zero translation) vs. Recharts/Visx (lighter bundle). <strong>react-plotly.js recommended</strong> — Python already emits Plotly JSON, no transformation needed in frontend.</div></div>
+      <div class="decision-card"><div class="decision-q">3. Auto-insights text (Novice mode)?</div><div class="decision-r">Rule-based generation (deterministic, no deps) vs. LLM-powered narration (richer). <strong>Phase 1: rule-based. Later: optional LLM layer behind [insights] extra.</strong></div></div>
+      <div class="decision-card"><div class="decision-q">4. React build distribution?</div><div class="decision-r">Commit build output into the Python package (no Node required at install time) vs. build on-demand. <strong>Commit build output</strong> — most practical for pip install users.</div></div>
+      <div class="decision-card"><div class="decision-q">5. Training dashboard framework (Phase 7)?</div><div class="decision-r">Flask + Plotly.js (lightweight, consistent with existing plotly dep) vs. Dash vs. TUI. <strong>Flask + Plotly.js recommended.</strong></div></div>
+      <div class="decision-card"><div class="decision-q">6. Package name and structure?</div><div class="decision-r">Keep <code style="font-size:11px;color:var(--accent4)">datainsight-lite</code> short-term. Rename to <code style="font-size:11px;color:var(--accent4)">datainsight</code> when scope justifies. Also flatten double-nesting: <code style="font-size:11px;color:var(--accent4)">datainsight_lite/datainsight/</code> to <code style="font-size:11px;color:var(--accent4)">datainsight_lite/</code>.</div></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  function go(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+  const ids = ['current','changes','install','reporter-arch','reporter-tiers','reporter-api','reporter-web','phase0','phase1','phase2','phase3','phase4','phase5','phase6','phase7','phase8','order','deps','decisions'];
+  const navItems = document.querySelectorAll('.nav-item');
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const i = ids.indexOf(e.target.id);
+        if (i !== -1) { navItems.forEach(n => n.classList.remove('active')); navItems[i]?.classList.add('active'); }
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-10% 0px -60% 0px' }).observe && ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const i = ids.indexOf(e.target.id);
+          if (i !== -1) { navItems.forEach(n => n.classList.remove('active')); navItems[i]?.classList.add('active'); }
+        }
+      });
+    }, { threshold: 0.2, rootMargin: '-10% 0px -60% 0px' }).observe(el);
+  });
+</script>
+</body>
+</html>
